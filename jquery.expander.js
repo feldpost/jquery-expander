@@ -14,7 +14,10 @@
 
       // whether to keep the last word of the summary whole (true) or let it slice in the middle of a word (false)
       preserveWords: true,
-
+      
+      // whether to keep the last sentence of the summary whole (true) or let it slice in the middle of the sentence (false)
+      preserveSentences: false,
+      
       // a threshold of sorts for whether to initially hide/collapse part of the element's contents.
       // If after slicing the contents in two there are fewer words in the second part than
       // the value set by widow, we won't bother hiding/collapsing anything.
@@ -74,6 +77,7 @@
     var opts = $.extend({}, $.expander.defaults, options),
         rSelfClose = /^<(?:area|br|col|embed|hr|img|input|link|meta|param).*>$/i,
         rAmpWordEnd = opts.wordEnd || /(&(?:[^;]+;)?|[a-zA-Z\u00C0-\u0100]+)$/,
+        rAmpSentenceEnd = opts.sentenceEnd || /\.(?=[^.]*$).*$/,
         rOpenCloseTag = /<\/?(\w+)[^>]*>/g,
         rOpenTag = /<(\w+)[^>]*>/g,
         rCloseTag = /<\/(\w+)>/g,
@@ -139,7 +143,7 @@
             summTagless++;
           }
 
-          summaryText = backup(summaryText, o.preserveWords);
+          summaryText = backup(summaryText, o.preserveWords, o.preserveSentences);
 
           // separate open tags from close tags and clean up the lists
           summOpens = summaryText.match(rOpenTag) || [];
@@ -359,14 +363,19 @@
       return ret;
     }
 
-    function backup(txt, preserveWords) {
+    function backup(txt, preserveWords, preserveSentences) {
       if ( txt.lastIndexOf('<') > txt.lastIndexOf('>') ) {
         txt = txt.slice( 0, txt.lastIndexOf('<') );
       }
-      if (preserveWords) {
+
+      if (preserveSentences) {        
+        txt = txt.replace(rAmpSentenceEnd,'.');
+      }
+      
+      else if (preserveWords) {
         txt = txt.replace(rAmpWordEnd,'');
       }
-
+      
       return $.trim(txt);
     }
 
